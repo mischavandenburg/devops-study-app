@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DevOps Study Tracker{% endblock %}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 80%; /* Make table wide */
+            border-collapse: collapse; /* Remove gaps between cells */
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd; /* Add simple borders */
+            padding: 12px; /* Add padding for spacing */
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2; /* Light grey background for headers */
+        }
+        form div {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <h1>DevOps Study Tracker</h1>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>
