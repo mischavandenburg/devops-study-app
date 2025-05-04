@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    ports:
+      - "22112:22112"
+    volumes:
+      - ./src/backend/data/:/app/data
+    environment:
+      - DATA_DIR=/app/data
+    user: "1000:1000"
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "22111:22111"
+    environment:
+      - API_URL=http://backend:22112
+    depends_on:
+      - backend
+    user: "1000:1000"
