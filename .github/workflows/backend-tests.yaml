@@ -48,6 +48,30 @@ jobs:
           uv run ruff check --output-format=github --target-version=py313 src tests
           uv run ruff format --diff --check --target-version=py313 src tests
 
-      - name: Run Backend Tests
+      - name: Run tests with coverage
         run: |
-          uv run pytest
+          uv run pytest tests/ -v --cov=src/backend --cov-report=xml --cov-fail-under=80
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./src/backend/coverage.xml
+          retention-days: 7
+        if: ${{ always() }}
+
+      - name: Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: ./src/backend/coverage.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          header: test-coverage
+          recreate: true
+          path: code-coverage-results.md
