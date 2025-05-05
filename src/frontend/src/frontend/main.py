@@ -120,6 +120,9 @@ def health():
     ), 200 if api_status else 503
 
 
+# Comment to trigger CI
+
+
 def main():
     """Entry point for the application when run as a script"""
     logger.info("Starting DevOps Study Timer Frontend")
