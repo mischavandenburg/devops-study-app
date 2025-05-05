@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/mischavandenburg/devops-study-app/compare/backend-v0.2.0...backend-v0.2.1) (2025-05-05)
+
+
+### Bug Fixes
+
+* **backend:** trigger ci ([8925220](https://github.com/mischavandenburg/devops-study-app/commit/892522024b4dacd8ea9b9d507a35231243793dba))
+
 ## [0.2.0](https://github.com/mischavandenburg/devops-study-app/compare/backend-v0.1.2...backend-v0.2.0) (2025-05-05)
 
 
