@@ -1,0 +1,38 @@
+name: End-to-End Tests
+
+# This workflow is triggered by other workflows, not directly from PRs
+on:
+  workflow_call:
+
+jobs:
+  e2e_test:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./kubernetes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install K3d
+        uses: nolar/setup-k3d-k3s@v1
+        with:
+          version: "latest"
+          skip-creation: true
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Run E2E tests
+        run: |
+          uv run python e2e_test.py
