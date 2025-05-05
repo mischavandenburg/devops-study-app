@@ -1,0 +1,84 @@
+name: Update GitOps Repository
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+        description: "The tag name of the release"
+      image:
+        required: true
+        type: string
+        description: "The image being updated"
+    secrets:
+      GITOPS_DEPLOY_KEY:
+        required: true
+        description: "Deploy key for GitOps repository"
+      DEVOPS_STUDY_APP:
+        required: true
+        description: "PAT GitOps repository"
+
+jobs:
+  update-gitops:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Actions Repo
+        uses: actions/checkout@v4
+        with:
+          path: actions-repo
+
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: mischavandenburg/devops-study-app-gitops
+          ref: main
+          path: devops-study-app-gitops
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+
+      - name: Update Image Tags Dev
+        run: |
+          # Define the target kustomization file
+          KUSTOMIZATION_FILE="./devops-study-app-gitops/apps/dev/kustomization.yaml"
+          SCRIPT_PATH="./actions-repo/scripts/update_kustomize_tag"
+
+          # Call the script with the input tag, kustomization file path, and image name
+          echo "Calling update script with tag: ${{ inputs.tag }}, file: $KUSTOMIZATION_FILE, image: ${{ inputs.image }}"
+          "$SCRIPT_PATH" "${{ inputs.tag }}" "$KUSTOMIZATION_FILE" "${{ inputs.image }}"
+
+      - uses: EndBug/add-and-commit@v9
+        with:
+          author_name: GitOps Bot
+          author_email: mail@example.com
+          cwd: ./devops-study-app-gitops
+          message: Update ${{ inputs.image }} deployment with tag "${{ inputs.tag }}"
+
+      - name: Update Image Tags Prod
+        run: |
+          # Define the target kustomization file
+          KUSTOMIZATION_FILE="./devops-study-app-gitops/apps/prod/kustomization.yaml"
+          SCRIPT_PATH="./actions-repo/scripts/update_kustomize_tag"
+
+          # Call the script with the input tag, kustomization file path, and image name
+          echo "Calling update script with tag: ${{ inputs.tag }}, file: $KUSTOMIZATION_FILE, image: ${{ inputs.image }}"
+          "$SCRIPT_PATH" "${{ inputs.tag }}" "$KUSTOMIZATION_FILE" "${{ inputs.image }}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DEVOPS_STUDY_APP }} # Requires a PAT with repo scope for study-app-gitops
+          path: ./devops-study-app-gitops
+          commit-message: Update dev deployments to tag ${{ inputs.tag }}
+          committer: GitOps Bot <gitops-bot@github.com>
+          author: GitOps Bot <gitops-bot@github.com>
+          branch: gitops/update-tag-${{ inputs.image }}
+          delete-branch: true
+          title: "Update prod image tag to ${{ inputs.tag }}"
+          body: |
+            Update image tag in the dev environment kustomization for ${{ inputs.image }}.
+          labels: |
+            automated pr
+            gitops
