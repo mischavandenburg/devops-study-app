@@ -46,7 +46,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
     outputs:
       tag: ${{ steps.tag.outputs.TAG }}
-      app: backend
+      image: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
 
   build-and-push-frontend:
     name: Build and Push Frontend
@@ -83,4 +83,18 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
     outputs:
       tag: ${{ steps.tag.outputs.TAG }}
-      app: frontend
+      image: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+
+  trigger_gitops:
+    name: Trigger GitOps
+    needs: [build-and-push-backend, build-and-push-frontend]
+    # Run if either build job succeeded (the other one will be skipped based on the tag)
+    if: always() && (needs.build-and-push-backend.result == 'success' || needs.build-and-push-frontend.result == 'success')
+    uses: ./.github/workflows/update-gitops.yaml
+    with:
+      tag: ${{ needs.build-and-push-backend.outputs.tag || needs.build-and-push-frontend.outputs.tag }}
+      image: ${{ needs.build-and-push-backend.outputs.image || needs.build-and-push-frontend.outputs.image }}
+
+    secrets:
+      GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
+      DEVOPS_STUDY_APP: ${{ secrets.DEVOPS_STUDY_APP }}

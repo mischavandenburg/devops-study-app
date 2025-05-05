@@ -1,0 +1,51 @@
+#!/bin/bash
+# Exit immediately if a command exits with a non-zero status.
+set -e
+# Check if the correct number of arguments is provided
+if [ "$#" -ne 3 ]; then
+  echo "Usage: $0 <input-tag> <kustomization-file-path> <image-name>"
+  exit 1
+fi
+
+INPUT_TAG=$1
+KUSTOMIZATION_FILE=$2
+IMAGE_NAME=$3
+
+echo "Script received Input Tag: $INPUT_TAG"
+echo "Script received Kustomization File: $KUSTOMIZATION_FILE"
+echo "Script received Image Name: $IMAGE_NAME"
+
+# Update Kustomization File
+# Check if yq is available
+#
+if ! command -v yq &>/dev/null; then
+  echo "Error: yq command could not be found."
+  exit 1
+fi
+
+# Check if the kustomization file exists
+if [ ! -f "$KUSTOMIZATION_FILE" ]; then
+  echo "Error: Kustomization file not found at '$KUSTOMIZATION_FILE'"
+  exit 1
+fi
+
+echo "Updating Kustomize image '$IMAGE_NAME' in $KUSTOMIZATION_FILE to tag: $INPUT_TAG"
+
+# Check which version of yq you're using
+if yq --version 2>&1 | grep -q "mikefarah"; then
+  # Using mikefarah/yq (Go version)
+  yq eval ".images[] |= select(.name == \"$IMAGE_NAME\").newTag = \"$INPUT_TAG\"" -i "$KUSTOMIZATION_FILE"
+else
+  # Likely using Python yq
+  # Escape any special characters in the image name for use in the filter
+  ESCAPED_IMAGE_NAME=$(printf '%s\n' "$IMAGE_NAME" | sed 's/[\/&]/\\&/g')
+  yq -y ".images[] |= (select(.name == \"$ESCAPED_IMAGE_NAME\") | .newTag = \"$INPUT_TAG\")" "$KUSTOMIZATION_FILE" >"${KUSTOMIZATION_FILE}.tmp" && mv "${KUSTOMIZATION_FILE}.tmp" "$KUSTOMIZATION_FILE"
+fi
+
+echo "Successfully updated $KUSTOMIZATION_FILE"
+# Show the updated file content
+echo "--- Updated $KUSTOMIZATION_FILE content ---"
+cat "$KUSTOMIZATION_FILE"
+echo "--- End of $KUSTOMIZATION_FILE content ---"
+exit 0
+

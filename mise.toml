@@ -1,4 +1,6 @@
 [tools]
+flux2 = "latest"
+gh = "latest"
 k3d = "latest"
 k9s = "latest"
 kubectl = "latest"
@@ -31,3 +33,11 @@ run = "bash ./kubernetes/setup_cluster_minimal"
 [tasks.e2e-test]
 description = "Run end-to-end tests on the Kubernetes deployment"
 run = "cd ./kubernetes && uv run e2e_test.py"
+
+[tasks.setup-keys]
+description = "Set up deploy keys for our repo"
+run = "bash ./scripts/setup_deploy_key"
+
+[tasks.k8s-setup-gitops]
+description = "Set up a cluster configured with GitOps using Flux"
+run = "bash ./kubernetes/setup_cluster_gitops"
